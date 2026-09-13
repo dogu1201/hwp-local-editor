@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "sample": 1,
+      "pages": 3,
+      "textLength": 448,
+      "bytes": 29696,
+      "editPersisted": true,
+      "textRoundtripExact": true,
+      "verify": {
+        "bytesLen": 29696,
+        "pageCountBefore": 3,
+        "pageCountAfter": 3,
+        "recovered": true
+      }
+    },
+    {
+      "sample": 2,
+      "pages": 2,
+      "textLength": 348,
+      "bytes": 26112,
+      "editPersisted": true,
+      "textRoundtripExact": true,
+      "verify": {
+        "bytesLen": 26112,
+        "pageCountBefore": 2,
+        "pageCountAfter": 2,
+        "recovered": true
+      }
+    }
+  ]
+}
