@@ -3,15 +3,16 @@ const $=id=>document.getElementById(id);
 let editor, fileName='문서.hwp', busy=false, loaded=false;
 let newDocumentRequest=0;
 const heartbeat=()=>fetch('/__heartbeat',{method:'POST',cache:'no-store'}).catch(()=>{});
-heartbeat();setInterval(heartbeat,5000);
+const isLocal=['127.0.0.1','localhost','[::1]'].includes(location.hostname);
+if(isLocal){heartbeat();setInterval(heartbeat,5000);}
 function status(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
 function lock(value){busy=value;$('open').disabled=value||!editor;$('new').disabled=value||!editor;$('save').disabled=value||!loaded;}
 try{
-  const hasLocalStudio=await fetch('/rhwp/index.html',{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false);
-  const studioUrl=hasLocalStudio?location.origin+'/rhwp/':'https://edwardkim.github.io/rhwp/';
+  const hasLocalStudio=isLocal&&await fetch('./rhwp/index.html',{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false);
+  const studioUrl=hasLocalStudio?new URL('./rhwp/',location.href).href:'https://edwardkim.github.io/rhwp/';
   editor=await createEditor('#editor',{studioUrl,requestTimeoutMs:90000});
   lock(false);status('준비 완료');$('welcome').textContent='오른쪽 위 「새 문서 작성」으로 시작하거나 「파일 열기」로 HWP / HWPX 문서를 선택하세요.\n문서는 이 PC의 브라우저에서 처리됩니다.';
-}catch(e){status('편집기를 시작하지 못했습니다: '+e.message,true);$('welcome').textContent='실행기를 종료한 뒤 다시 실행해 주세요.';}
+}catch(e){status('편집기를 시작하지 못했습니다: '+e.message,true);$('welcome').textContent='페이지를 새로고침해 주세요. 인터넷 연결도 확인해 주세요.';}
 $('open').onclick=()=>{if(!busy)$('picker').click();};
 $('new').onclick=async()=>{
  if(busy||!editor)return;
