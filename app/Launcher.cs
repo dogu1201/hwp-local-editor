@@ -12,7 +12,7 @@ class Launcher {
  static long lastHeartbeat; static bool clientSeen;
  const string Policy="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob:; frame-src 'self' blob: https://edwardkim.github.io; worker-src 'self' blob:; object-src 'none'; base-uri 'self'";
  [STAThread] static int Main(string[] args){
-  root=Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
+  root=Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"app"));
   try{server=new TcpListener(IPAddress.Loopback,18764);server.Start();}
   catch(SocketException){server=new TcpListener(IPAddress.Loopback,0);server.Start();}
   url="http://127.0.0.1:"+((IPEndPoint)server.LocalEndpoint).Port+"/";
