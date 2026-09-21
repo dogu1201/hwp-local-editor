@@ -1,3 +1,4 @@
+import {installFeatures} from './features.js';
 import {createEditor} from './sdk/index.js';
 const $=id=>document.getElementById(id);
 let editor, fileName='문서.hwp', busy=false, loaded=false;
@@ -6,7 +7,8 @@ const heartbeat=()=>fetch('/__heartbeat',{method:'POST',cache:'no-store'}).catch
 const isLocal=['127.0.0.1','localhost','[::1]'].includes(location.hostname);
 if(isLocal){heartbeat();setInterval(heartbeat,5000);}
 function status(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
-function lock(value){busy=value;$('open').disabled=value||!editor;$('new').disabled=value||!editor;$('save').disabled=value||!loaded;}
+function lock(value){busy=value;$('templates-toggle').disabled=value||!editor;$('open').disabled=value||!editor;$('new').disabled=value||!editor;$('save').disabled=value||!loaded;}
+installFeatures({openFile,report:status});
 try{
   const hasLocalStudio=isLocal&&await fetch('./rhwp/index.html',{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false);
   const studioUrl=hasLocalStudio?new URL('./rhwp/',location.href).href:'https://edwardkim.github.io/rhwp/';
@@ -45,14 +47,19 @@ $('new').onclick=async()=>{
   if(request===newDocumentRequest){$('overlay').hidden=wasHidden;status('새 문서 작성 실패: '+e.message,true);}
  }finally{if(request===newDocumentRequest)lock(false);}
 };
-$('picker').onchange=async()=>{
- const file=$('picker').files[0];$('picker').value='';if(!file)return;
+async function openFile(file){
+ if(busy||!editor){status('편집기 준비 또는 작업이 끝난 뒤 다시 시도해 주세요.',true);return;}
+ if(!/\.(hwp|hwpx)$/i.test(file.name)){status('HWP 또는 HWPX 파일만 열 수 있습니다.',true);return;}
  ++newDocumentRequest;
  lock(true);status('문서를 여는 중…');
- try{const result=await editor.loadFile(await file.arrayBuffer(),file.name);fileName=file.name;loaded=true;$('name').textContent=fileName;$('overlay').hidden=true;status(result.pageCount+'쪽 · 문서 안을 클릭하여 편집');}
- catch(e){status('열기 실패: '+e.message,true);}
+ const previousOverlay=$('overlay').hidden;
+ $('overlay').hidden=true;
+ try{const result=await editor.loadFile(await file.arrayBuffer(),file.name);fileName=file.name;loaded=true;$('name').textContent=fileName;status(result.pageCount+'쪽 · 문서 안을 클릭하여 편집');editor.element.focus();}
+ catch(e){$('overlay').hidden=previousOverlay;status('열기 실패: '+e.message,true);}
  finally{lock(false);}
-};
+}
+$('picker').onchange=async()=>{const file=$('picker').files[0];$('picker').value='';if(file)await openFile(file);};
+
 $('save').onclick=async()=>{
  if(busy||!loaded)return;
  const name=fileName.replace(/\.(hwp|hwpx)$/i,'')+'_수정.hwp';
