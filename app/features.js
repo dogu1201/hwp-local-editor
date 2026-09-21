@@ -7,7 +7,11 @@ export function installFeatures({openFile, report}) {
  for(const button of panel.querySelectorAll('button')) button.onclick=async()=>{
   panel.hidden=true;
   document.getElementById('templates-toggle').setAttribute('aria-expanded','false');
-  report('이 서식은 지정 계정 전용으로 전환 중입니다. 로그인 설정이 완료되면 이용할 수 있습니다.',true);
+  try {
+   const response=await fetch('./templates/'+button.dataset.file);
+   if(!response.ok)throw Error('문서 파일을 읽을 수 없습니다.');
+   await openFile(new File([await response.arrayBuffer()],button.dataset.name));
+  }catch(error){report(error.message,true);}
  };
  const shield=document.getElementById('drop-shield');
  const hide=()=>{shield.hidden=true;shield.classList.remove('dragging');};
